@@ -8,7 +8,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY main.py .
-COPY .env .
+COPY gmail_client.py .
+COPY supabase_client.py .
+COPY parse_pdf.py .
 
 # Expose the port for the application
 EXPOSE 80
