@@ -1,17 +1,25 @@
-from fastapi import FastAPI, Header, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 import base64
 import tempfile
-from parse_pdf import extract_gift_card_details
+import os
+from fastapi import FastAPI, Header, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
+from parse_pdf import extract_gift_card_details
 from gmail_client import GmailClient
 from supabase_client import SupabaseClient
 
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "https://wch.apps.lizardbaby.com",
-]
+load_dotenv()
+
+origins = (
+    [
+        "http://localhost",
+        "http://localhost:8080",
+        "https://wch.apps.lizardbaby.com",
+    ]
+    if os.getenv("ENV") == "development"
+    else ["https://wch.apps.lizardbaby.com"]
+)
 
 app = FastAPI(title="Wolt Gift Card API")
 
