@@ -103,8 +103,8 @@ class SupabaseClient:
         """
         result = (
             self.client.table("mails")
-            .select("message_id")
-            .eq("message_id", msg_id)
+            .select("msg_id")
+            .eq("msg_id", msg_id)
             .execute()
         )
         return len(result.data) > 0
@@ -115,7 +115,7 @@ class SupabaseClient:
         Save the processed message ID to the cache.
         """
         try:
-            self.client.table("mails").insert({"message_id": msg_id, "user_id": self.user.id}).execute()
+            self.client.table("mails").insert({"msg_id": msg_id, "user_id": self.user.id}).execute()
             print(f"Cached message ID {msg_id}")
         except Exception as e:
             print(f"Error caching message ID {msg_id}: {str(e)}")
