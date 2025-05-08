@@ -118,20 +118,21 @@ async def fetch_gift_cards(
     processed_emails = []
 
     for email in gmail_result["emails"]:
-        msg_id = email["message_id"]
-        attachments = email["attachments"]
+        msg_id = email["message_id"]       
+        if supabase_client.is_msg_id_cached(msg_id):
+            print(f"Message ID {msg_id} already processed, skipping.")
+            continue
 
-        # Extract codes from the attachments
+        attachments = gmail_client.fetch_email_attachments(msg_id)
         codes_with_values = extract_codes_from_attachments(attachments)
         all_codes_with_values.extend(codes_with_values)
-
-        # Add to processed emails list
         processed_emails.append(
             {
                 "message_id": msg_id,
                 "codes": [item["code"] for item in codes_with_values],
             }
         )
+        supabase_client.cache_msg_id(msg_id)
 
     saved_count = supabase_client.save_gift_card_codes(all_codes_with_values)
     distinct_codes = list(set(item["code"] for item in all_codes_with_values))

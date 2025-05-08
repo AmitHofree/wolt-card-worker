@@ -53,7 +53,7 @@ class SupabaseClient:
         if not self.user:
             raise ValueError("No authenticated user found")
 
-        return self.user.user_metadata['sub']
+        return self.user.user_metadata["sub"]
 
     def save_gift_card_codes(self, codes_with_values):
         """
@@ -96,3 +96,26 @@ class SupabaseClient:
         )
         result = query.execute()
         return result.data
+    
+    def is_msg_id_cached(self, msg_id):
+        """
+        Check if a message ID has already been processed.
+        """
+        result = (
+            self.client.table("mails")
+            .select("message_id")
+            .eq("message_id", msg_id)
+            .execute()
+        )
+        return len(result.data) > 0
+
+
+    def cache_msg_id(self, msg_id):
+        """
+        Save the processed message ID to the cache.
+        """
+        try:
+            self.client.table("mails").insert({"message_id": msg_id, "user_id": self.user.id}).execute()
+            print(f"Cached message ID {msg_id}")
+        except Exception as e:
+            print(f"Error caching message ID {msg_id}: {str(e)}")

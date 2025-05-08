@@ -111,7 +111,7 @@ class GmailClient:
     def fetch_wolt_gift_card_emails(self, subject=MAIL_SUBJECT, days=30):
         """
         Fetch all Wolt Gift Card emails from Gmail within the specified days.
-        Returns the email messages and their attachments.
+        Returns only the email metadata without attachments.
         """
         if not self.gmail_service:
             raise ValueError("Client not authenticated. Call authenticate() first.")
@@ -137,31 +137,45 @@ class GmailClient:
                 "emails": [],
             }
 
-        # Fetch full details for each matching message
-        emails_with_attachments = []
+        # Fetch basic details for each matching message
+        emails = []
 
         for msg in messages:
             msg_id = msg["id"]
             message_detail = (
                 self.gmail_service.users()
                 .messages()
-                .get(userId="me", id=msg_id, format="full")
+                .get(userId="me", id=msg_id, format="metadata")
                 .execute()
             )
 
-            # Get the message payload
-            payload = message_detail.get("payload", {})
+            # Add the message metadata
+            emails.append({
+                "message_id": msg_id,
+                "message_detail": message_detail
+            })
 
-            # Get attachments for this message
-            attachments = self.get_attachments(msg_id, payload)
+        return {"emails": emails}
 
-            # Add the message with its attachments
-            emails_with_attachments.append(
-                {
-                    "message_id": msg_id,
-                    "message_detail": message_detail,
-                    "attachments": attachments,
-                }
-            )
+    def fetch_email_attachments(self, message_id):
+        """
+        Fetch all attachments for a specific email message.
+        
+        Args:
+            message_id: The ID of the Gmail message to fetch attachments from
+            
+        Returns:
+            List of attachments with their data
+        """
+        if not self.gmail_service:
+            raise ValueError("Client not authenticated. Call authenticate() first.")
 
-        return {"emails": emails_with_attachments}
+        message_detail = (
+            self.gmail_service.users()
+            .messages()
+            .get(userId="me", id=message_id, format="full")
+            .execute()
+        )
+
+        payload = message_detail.get("payload", {})
+        return self.get_attachments(message_id, payload)
